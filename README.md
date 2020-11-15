@@ -23,8 +23,10 @@ There will be a
 To learn as well as demonstrate my capabilities at:
 - Implementing the above idea as best I can.
 - Following best practises when it comes to Go project/package structures as well as naming conventions and documentation etc as found at https://golang.org/doc/
-- Using a Gitflow branching approach (albeit - on my own). This will take the form of `task/` branches off of `master`, I am going to do my best to try and break down the work in as vertically way as I can, I think this will prove to be challenging.
+- Using a Gitflow branching approach (albeit - on my own). This will take the form of `task/` branches off of ~~`master`~~ `main`__`*`__, I am going to do my best to try and break down the work in as vertically way as I can, I think this will prove to be challenging.
 - `Testing` - I will be implementing tests within my packages for sure. I will *not* be taking a TDD approach to this however as I have never worked that way before anyway. I have enough to get used to as it is so I am not adding that to the pile! :sweat_smile:
+
+__`*`__ I have just noticed that my master branch is called main, this a mistake on my part as I would normally stick to the normal naming convention. I'm not sure how this happened and to keep things simple I am going to leave it as is.
 
 *__NOTE: I am going to use this README to log my progress with this project. This exercise, to me; is as much about learning as it is demonstrating so I think this will be (alongside the git history) - valuable to the reader.__* 
 
@@ -69,3 +71,15 @@ So I am going to revisit the idea of `websockets`. I think I can create a 'pubsu
 I have worked a bit with websockets in the past and they have been awkward to work with and test, also I have never used them where the 'client' isn't a browser - so something new there. The package at [gorilla/websocket](https://github.com/gorilla/websocket) seems simple to implement, and I know that Gorilla is a respected third party. 
 
 I am going to spike again to get a client/server `websocket` running within my project.
+
+__Edit:__ OK so my spike worked but it following a tutorial that was using the browser as the client. I have found [another tutorial on YouTube](https://www.youtube.com/watch?v=Sphme0BqJiY) on how to create a chat application all within Go, creating your own clients. This tutorial is leveraging everything from the standard library and I'm hoping to use this to help guide me along my way when it comes to the details that I am very green at still. 
+
+I know that the requirements said I can use any library I wish and I don't doubt that I could use the gorilla/websocket package to achieve the same thing. I have also read that having the minimum amount of dependencies in your package is a good thing, so I see it as a plus, especially whilst learning. :smile:
+
+
+
+I'm breaking the workload as close as I can at first into the following tasks:
+
+- `Task 1` Create initial project structure, set up structs and work flow with sockets to get the `Hub` sending messages to a `Client`.
+- `Task 2` Refine the messages to the 3 different types outlined in the requirements.
+- `Task 3` Adding Unit tests.
