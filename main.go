@@ -16,7 +16,7 @@ func main() {
 	w := os.Stdout
 	projectID := "messagedelivery-1605371057361"
 	topicID := "MessageDeliveryTopic"
-	msg := "Foobar"
+	msg := "Please work"
 
 	err := publish(w, projectID, topicID, msg)
 
