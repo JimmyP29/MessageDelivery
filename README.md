@@ -19,17 +19,17 @@ There will be a
 
 
 ## Aim
----
+
 To learn as well as demonstrate my capabilities at:
 - Implementing the above idea as best I can.
 - Following best practises when it comes to Go project/package structures as well as naming conventions and documentation etc as found at https://golang.org/doc/
-- Using a Gitflow branching approach (albeit - on my own). This will take the form of `task/` branches off of `master`, I am going to do my best to try and break down the work in as vertical way as I can, I think this will prove to be challenging.
+- Using a Gitflow branching approach (albeit - on my own). This will take the form of `task/` branches off of `master`, I am going to do my best to try and break down the work in as vertically way as I can, I think this will prove to be challenging.
 - `Testing` - I will be implementing tests within my packages for sure. I will *not* be taking a TDD approach to this however as I have never worked that way before anyway. I have enough to get used to as it is so I am not adding that to the pile! :sweat_smile:
 
 *__NOTE: I am going to use this README to log my progress with this project. This exercise, to me; is as much about learning as it is demonstrating so I think this will be (alongside the git history) - valuable to the reader.__* 
 
 ## Initial Thoughts
----
+
 I need to ensure that communication between the Hub and Clients is done on the network layer. My mind wandered to the following 3 places...
 
 `http`
@@ -42,7 +42,30 @@ I need to ensure that communication between the Hub and Clients is done on the n
 - I had thought of 'pubsub' before http because of the way the message behaviour reminded me of utilising service buses with Topics using .Net Core and Azure. I thought it would maybe not be appropriate for the scope of this project as I want this to be a self contained solution that doesn't require having to setup something so complicated. However I found [this Go package](https://godoc.org/cloud.google.com/go/pubsub), which seems to abstract all the cloud stuff away from what you're doing so I am going to pursue that. If this ends up being a dead end I am thinking of trying to replicate something similar anyway.
 
 ## Planning
---- 
+
 __Pen and paper time.__
 
 I'm going to draw out how I think the data structures and interfaces should be and architect what I am going to do - I am also going to create a spike branch for playing with the `pubsub` package above to see if it suits my needs.
+
+__Edit:__ 
+
+I spent a few hours spiking the `pubsub` package, I did need to setup Google Cloud which I hadn't done before. 
+
+I used the example code and with a bit of tweaking was first able to get a message published - which made me very happy.  
+
+![Image of Google Cloud subscribed message](/README_assets/topic_gc_output.jpg "Image of Google Cloud subscribed message")
+
+I then got my code to both publish and subscibe to the Topic, pulling the message body back in the console.
+
+![Image of topic output in the console](/README_assets/topic_output.PNG "Image of topic output in the console")
+
+*However...*
+I have 2 issues with this approach:
+1. The onus of a client subscribing is on the Topic resource - not the Hub in my application. This makes it harder to control which client recieves what and also doesn't meet the requirement.
+2. I don't think the reader will be able to run this all locally as I have my own private API key and subscription to Google Cloud. This isn't going to be put into any kind of config and this application won't be deployed anywhere, so although I learnt some new things - I don't think this is going to be appropriate for this project.
+
+So I am going to revisit the idea of `websockets`. I think I can create a 'pubsub' like mechanism but I can put the control of subscribing within the `Hub`. It should also work within the contained project with no need to connect to cloud services, finally it is still operating on the network layer and as such - meets the requirement. 
+
+I have worked a bit with websockets in the past and they have been awkward to work with and test, also I have never used them where the 'client' isn't a browser - so something new there. The package at [gorilla/websocket](https://github.com/gorilla/websocket) seems simple to implement, and I know that Gorilla is a respected third party. 
+
+I am going to spike again to get a client/server `websocket` running within my project.
