@@ -14,6 +14,10 @@ var upgrader = websocket.Upgrader{
 }
 
 func websocketHandler(w http.ResponseWriter, r *http.Request) {
+	upgrader.CheckOrigin = func(r *http.Request) bool {
+		return true
+	}
+
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
@@ -32,11 +36,14 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		fmt.Printf("New message from client: %s", p)
+		fmt.Printf("New message from client: %s \n", p)
 	}
 }
 
 func main() {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "html")
+	})
 	http.HandleFunc("/ws", websocketHandler)
 	http.ListenAndServe(":8888", nil)
 	fmt.Println("Server running...")

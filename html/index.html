@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Message Delivery</title>
+        <script type="text/javascript">
+            const ws = new WebSocket("ws://localhost:8888/ws");
+
+            ws.onopen = () => { console.log('Connected'); }
+            ws.onmessage = (msg) => { console.log('Hub message: ', msg.data); }
+            ws.onclose = () => { console.log('Disconnected'); }
+        </script>
+    </head>
+    <body></body>
+</html>
