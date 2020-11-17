@@ -1,6 +1,7 @@
 package main
 
 import (
+	"MessageDelivery/messaging"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,6 +13,8 @@ var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 }
+
+var hub = messaging.NewHub(make([]messaging.Client, 100))
 
 func websocketHandler(w http.ResponseWriter, r *http.Request) {
 	upgrader.CheckOrigin = func(r *http.Request) bool {
@@ -25,6 +28,11 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println("New client connected")
+
+	c := messaging.NewClient(hub.AssignUserID(), conn)
+
+	hub.AddClient(*c)
+
 	for {
 		messageType, p, err := conn.ReadMessage()
 		if err != nil {
