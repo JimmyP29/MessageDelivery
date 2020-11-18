@@ -14,7 +14,10 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-var hub = messaging.NewHub(make([]messaging.Client, 100))
+var hub = messaging.NewHub(
+	make([]messaging.Client, 100),
+	make([]messaging.Subscription, 100),
+)
 
 func websocketHandler(w http.ResponseWriter, r *http.Request) {
 	upgrader.CheckOrigin = func(r *http.Request) bool {
@@ -29,9 +32,12 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("New client connected")
 
+	// Prior to a new client connecting, they are assigned an id
 	c := messaging.NewClient(hub.AssignUserID(), conn)
 
+	// The client is first added to the hub and then subscribed to the topic
 	hub.AddClient(*c)
+	hub.Subscribe(*c)
 
 	for {
 		messageType, p, err := conn.ReadMessage()

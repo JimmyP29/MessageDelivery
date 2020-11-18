@@ -7,16 +7,27 @@ import (
 	"time"
 )
 
+var topic = "TechTest"
+
 // Hub - used to control message flow to clients
 type Hub struct {
-	clients []Client
+	clients       []Client
+	subscriptions []Subscription
+}
+
+// Subscription - allows client to subscribe to the topic
+type Subscription struct {
+	topic  string
+	client *Client
 }
 
 // NewHub creates a new hub
-func NewHub(clients []Client) *Hub {
-	return &Hub{
-		clients,
-	}
+func NewHub(clients []Client, subs []Subscription) *Hub {
+	return &Hub{clients, subs}
+}
+
+func newSubscription(topic string, client *Client) *Subscription {
+	return &Subscription{topic, client}
 }
 
 // AssignUserID - creates new uint64 userID using RNG
@@ -28,9 +39,40 @@ func (h *Hub) AssignUserID() uint64 {
 // AddClient - appends new client to client slice
 func (h *Hub) AddClient(client Client) *Hub {
 	h.clients = append(h.clients, client)
-
 	fmt.Printf("Client %v has been added to the hub \n", client.userID)
-	//fmt.Printf("hub: %+v \n", h.clients)
+	return h
+}
+
+// GetSubscripions - returns a slice of all Subscriptions in the Hub
+func (h *Hub) GetSubscripions(client *Client) []Subscription {
+	var subs []Subscription
+
+	for _, sub := range h.subscriptions {
+		if client != nil {
+			if sub.client.userID == client.userID {
+				subs = append(subs, sub)
+			}
+		} else {
+			subs = append(subs, sub)
+		}
+	}
+
+	return subs
+}
+
+// Subscribe - creates new subcription to topic
+func (h *Hub) Subscribe(client Client) *Hub {
+	// clientSubs := h.GetSubscripions(&client)
+
+	// if len(clientSubs) > 0 {
+	// 	// client is subscribed
+	// 	return h
+	// }
+
+	s := newSubscription(topic, &client)
+	h.subscriptions = append(h.subscriptions, *s)
+
+	fmt.Printf("Client %v has been subscribed to the %s topic \n", client.userID, topic)
 	return h
 }
 
@@ -42,10 +84,17 @@ func (h *Hub) HandleReceiveMessage(client Client, messageType int, payload []byt
 	err := json.Unmarshal(payload, &m)
 
 	if err != nil {
-		fmt.Println("Unrecognised message")
+		fmt.Println("Unrecognised message format")
 		return h
 	}
 
-	fmt.Printf("Valid payload :)\n MsgType: %v\n Body: %v\n SenderID: %v\n ClientIDS: %+v\n", m.MsgType, m.Body, m.SenderID, m.ClientIDS)
+	fmt.Printf("Valid payload :)\n"+
+		"MsgType: %v\n Body: %v\n SenderID: %v\n ClientIDS: %+v\n",
+		m.MsgType,
+		m.Body,
+		m.SenderID,
+		m.ClientIDS)
+
+	// switch for identity, list, relay
 	return h
 }

@@ -14,4 +14,5 @@ type Message struct {
 	Body      string      `json:"body"`
 	SenderID  uint64      `json:"senderID"`
 	ClientIDS []uint64    `json:"clientIDS"`
+	Topic     string
 }
