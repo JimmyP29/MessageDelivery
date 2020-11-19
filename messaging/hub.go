@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"strconv"
 	"time"
 )
 
@@ -87,6 +88,30 @@ func (h *Hub) Publish(message []byte, excludeClient *Client) {
 	}
 }
 
+func (h *Hub) handleIdentity(client *Client) {
+	id := strconv.FormatUint(client.userID, 10)
+	payload := "(Identity) Current userID: " + id
+	msg, err := json.Marshal(payload)
+
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	h.publishIdentity(msg, client)
+}
+
+func (h *Hub) publishIdentity(message []byte, client *Client) {
+	err := client.connection.WriteMessage(1, message)
+
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	fmt.Printf("Sending to client id %v with message %s \n", client.userID, message)
+}
+
 // HandleReceiveMessage - handle the messages incoming from the websocket
 func (h *Hub) HandleReceiveMessage(client Client, payload []byte) *Hub {
 	m := Message{}
@@ -109,7 +134,11 @@ func (h *Hub) HandleReceiveMessage(client Client, payload []byte) *Hub {
 	// switch for identity, list, relay
 	switch m.MsgType {
 	case Identity:
-		fmt.Printf("Identity: %v \n", Identity)
+		if &client != nil {
+			h.handleIdentity(&client)
+		} else {
+			fmt.Println("Invalid client")
+		}
 		break
 	case List:
 		fmt.Printf("List: %v \n", List)
@@ -122,6 +151,6 @@ func (h *Hub) HandleReceiveMessage(client Client, payload []byte) *Hub {
 			"0: Identity\n" + "1: List\n" + "2: Relay\n")
 		break
 	}
-	h.Publish(m.Body, nil)
+	//h.Publish(m.Body, nil)
 	return h
 }
