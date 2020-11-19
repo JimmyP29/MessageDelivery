@@ -99,14 +99,29 @@ func (h *Hub) HandleReceiveMessage(client Client, payload []byte) *Hub {
 		return h
 	}
 
-	fmt.Printf("Valid payload :)\n"+
-		"MsgType: %v\n Body: %v\n SenderID: %v\n ClientIDS: %+v\n",
-		m.MsgType,
-		string(m.Body),
-		m.SenderID,
-		m.ClientIDS)
+	// fmt.Printf("Valid payload :)\n"+
+	// 	"MsgType: %v\n Body: %v\n SenderID: %v\n ClientIDS: %+v\n",
+	// 	m.MsgType,
+	// 	string(m.Body),
+	// 	m.SenderID,
+	// 	m.ClientIDS)
 
 	// switch for identity, list, relay
+	switch m.MsgType {
+	case Identity:
+		fmt.Printf("Identity: %v \n", Identity)
+		break
+	case List:
+		fmt.Printf("List: %v \n", List)
+		break
+	case Relay:
+		fmt.Printf("Relay: %v \n", Relay)
+		break
+	default:
+		fmt.Println("Unrecognised message type, please use: \n" +
+			"0: Identity\n" + "1: List\n" + "2: Relay\n")
+		break
+	}
 	h.Publish(m.Body, nil)
 	return h
 }
