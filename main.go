@@ -37,7 +37,7 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 
 	// The client is first added to the hub and then subscribed to the topic
 	hub.AddClient(*c)
-	hub.Subscribe(*c)
+	hub.Subscribe(c)
 
 	for {
 		messageType, p, err := conn.ReadMessage()

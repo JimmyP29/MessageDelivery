@@ -1,5 +1,7 @@
 package messaging
 
+import "encoding/json"
+
 type messageType int
 
 const (
@@ -10,9 +12,9 @@ const (
 
 // Message - used by the Hub to send to clients
 type Message struct {
-	MsgType   messageType `json:"type"`
-	Body      string      `json:"body"`
-	SenderID  uint64      `json:"senderID"`
-	ClientIDS []uint64    `json:"clientIDS"`
+	MsgType   messageType     `json:"type"`
+	Body      json.RawMessage `json:"body"`
+	SenderID  uint64          `json:"senderID"`
+	ClientIDS []uint64        `json:"clientIDS"`
 	Topic     string
 }

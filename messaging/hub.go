@@ -3,6 +3,7 @@ package messaging
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/rand"
 	"time"
 )
@@ -43,10 +44,10 @@ func (h *Hub) AddClient(client Client) *Hub {
 	return h
 }
 
-// GetSubscripions - returns a slice of all Subscriptions in the Hub
-func (h *Hub) GetSubscripions(client *Client) []Subscription {
+// GetSubscriptions - returns a slice of all Subscriptions in the Hub
+func (h *Hub) GetSubscriptions(client *Client) []Subscription {
 	var subs []Subscription
-
+	fmt.Println("Made it this far...", h.subscriptions)
 	for _, sub := range h.subscriptions {
 		if client != nil {
 			if sub.client.userID == client.userID {
@@ -61,19 +62,44 @@ func (h *Hub) GetSubscripions(client *Client) []Subscription {
 }
 
 // Subscribe - creates new subcription to topic
-func (h *Hub) Subscribe(client Client) *Hub {
-	// clientSubs := h.GetSubscripions(&client)
+func (h *Hub) Subscribe(client *Client) *Hub {
+	// clientSubs := h.GetSubscriptions(client)
 
 	// if len(clientSubs) > 0 {
 	// 	// client is subscribed
 	// 	return h
 	// }
 
-	s := newSubscription(topic, &client)
+	s := newSubscription(topic, client)
 	h.subscriptions = append(h.subscriptions, *s)
 
 	fmt.Printf("Client %v has been subscribed to the %s topic \n", client.userID, topic)
 	return h
+}
+
+func (h *Hub) Publish(message []byte, excludeClient *Client) {
+	subscriptions := h.GetSubscriptions(nil)
+	//fmt.Printf("subs: %+v", subscriptions)
+	//if len(subscriptions) == len(h.clients) {
+	//fmt.Println("Not Balls")
+	for _, sub := range subscriptions {
+		//fmt.Printf("Sending to client id %v message is %s", sub.client.userID, message)
+		if sub.client != nil {
+			fmt.Println("Here?", sub)
+			//sub.client.connection.WriteMessage(1, message)
+			err := sub.client.connection.WriteMessage(1, message)
+
+			if err != nil {
+				log.Println(err)
+				return
+			}
+		}
+
+	}
+	// } else {
+	// 	fmt.Println("Balls")
+	// }
+
 }
 
 // HandleReceiveMessage - handle the messages incoming from the websocket
@@ -91,10 +117,11 @@ func (h *Hub) HandleReceiveMessage(client Client, messageType int, payload []byt
 	fmt.Printf("Valid payload :)\n"+
 		"MsgType: %v\n Body: %v\n SenderID: %v\n ClientIDS: %+v\n",
 		m.MsgType,
-		m.Body,
+		string(m.Body),
 		m.SenderID,
 		m.ClientIDS)
 
 	// switch for identity, list, relay
+	h.Publish(m.Body, nil)
 	return h
 }
