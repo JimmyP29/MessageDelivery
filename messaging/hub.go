@@ -88,6 +88,22 @@ func (h *Hub) Publish(message []byte, excludeClient *Client) {
 	}
 }
 
+// publishToSender - publishes a message back to the original sender only
+func (h *Hub) publishToSender(message []byte, client *Client) {
+	err := client.connection.WriteMessage(1, message)
+
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	fmt.Printf("Sending to client id %v with message %s \n", client.userID, message)
+}
+
+/*
+	handleIdentity - handles the identity message type
+	Test data: '{"type": 0 }'
+*/
 func (h *Hub) handleIdentity(client *Client) {
 	id := strconv.FormatUint(client.userID, 10)
 	payload := "(Identity) Current userID: " + id
@@ -98,18 +114,30 @@ func (h *Hub) handleIdentity(client *Client) {
 		return
 	}
 
-	h.publishIdentity(msg, client)
+	h.publishToSender(msg, client)
 }
 
-func (h *Hub) publishIdentity(message []byte, client *Client) {
-	err := client.connection.WriteMessage(1, message)
+// handle list
+
+// handle relay
+
+/*
+	handleDefault - handles the default case when the message type is not recognised
+	Test data: '{"type": 3 }'
+*/
+func (h *Hub) handleDefault(client *Client) {
+	payload := "Unrecognised message type, please use ints only: " +
+		"0: Identity, 1: List, 2: Relay"
+
+	msg, err := json.Marshal(payload)
 
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	fmt.Printf("Sending to client id %v with message %s \n", client.userID, message)
+	fmt.Println(payload)
+	h.publishToSender(msg, client)
 }
 
 // HandleReceiveMessage - handle the messages incoming from the websocket
@@ -132,25 +160,25 @@ func (h *Hub) HandleReceiveMessage(client Client, payload []byte) *Hub {
 	// 	m.ClientIDS)
 
 	// switch for identity, list, relay
-	switch m.MsgType {
-	case Identity:
-		if &client != nil {
+	if &client != nil {
+		switch m.MsgType {
+		case Identity:
 			h.handleIdentity(&client)
-		} else {
-			fmt.Println("Invalid client")
+			break
+		case List:
+			fmt.Printf("List: %v \n", List)
+			break
+		case Relay:
+			fmt.Printf("Relay: %v \n", Relay)
+			break
+		default:
+			h.handleDefault(&client)
+			break
 		}
-		break
-	case List:
-		fmt.Printf("List: %v \n", List)
-		break
-	case Relay:
-		fmt.Printf("Relay: %v \n", Relay)
-		break
-	default:
-		fmt.Println("Unrecognised message type, please use: \n" +
-			"0: Identity\n" + "1: List\n" + "2: Relay\n")
-		break
+	} else {
+		fmt.Println("Invalid client")
 	}
+
 	//h.Publish(m.Body, nil)
 	return h
 }
