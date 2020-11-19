@@ -47,20 +47,14 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		hub.HandleReceiveMessage(*c, messageType, p)
-		// if err := conn.WriteMessage(messageType, p); err != nil {
-		// 	log.Println(err)
-		// 	return
-		// }
-
-		// fmt.Printf("New message from client: %s \n", p)
 	}
 }
 
 func main() {
+	fmt.Println("Server running...")
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "html")
 	})
 	http.HandleFunc("/ws", websocketHandler)
 	http.ListenAndServe(":8888", nil)
-	fmt.Println("Server running...")
 }

@@ -16,5 +16,4 @@ type Message struct {
 	Body      json.RawMessage `json:"body"`
 	SenderID  uint64          `json:"senderID"`
 	ClientIDS []uint64        `json:"clientIDS"`
-	Topic     string
 }
