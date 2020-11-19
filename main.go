@@ -46,7 +46,6 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// hub.HandleReceiveMessage(*c, messageType, p)
 		hub.HandleReceiveMessage(*c, p)
 	}
 }
