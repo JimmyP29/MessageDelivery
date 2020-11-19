@@ -88,7 +88,7 @@ func (h *Hub) Publish(message []byte, excludeClient *Client) {
 }
 
 // HandleReceiveMessage - handle the messages incoming from the websocket
-func (h *Hub) HandleReceiveMessage(client Client, messageType int, payload []byte) *Hub {
+func (h *Hub) HandleReceiveMessage(client Client, payload []byte) *Hub {
 	m := Message{}
 
 	// test data: '{"type": 1, "body": "foobar", "senderID": 110, "clientIDS": [123, 456, 789]}'

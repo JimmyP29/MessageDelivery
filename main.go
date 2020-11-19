@@ -40,13 +40,14 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 	hub.Subscribe(c)
 
 	for {
-		messageType, p, err := conn.ReadMessage()
+		_, p, err := conn.ReadMessage()
 		if err != nil {
 			log.Println(err)
 			return
 		}
 
-		hub.HandleReceiveMessage(*c, messageType, p)
+		// hub.HandleReceiveMessage(*c, messageType, p)
+		hub.HandleReceiveMessage(*c, p)
 	}
 }
 
