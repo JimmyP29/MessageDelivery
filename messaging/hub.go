@@ -50,12 +50,14 @@ func (h *Hub) GetSubscriptions(client *Client) []Subscription {
 	var subs []Subscription
 
 	for _, sub := range h.subscriptions {
-		if client != nil {
-			if sub.client.userID == client.userID {
+		if sub.client != nil {
+			if client != nil {
+				if sub.client.userID == client.userID {
+					subs = append(subs, sub)
+				}
+			} else {
 				subs = append(subs, sub)
 			}
-		} else {
-			subs = append(subs, sub)
 		}
 	}
 
