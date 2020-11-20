@@ -107,7 +107,16 @@ func (h *Hub) publishToSender(message []byte, client *Client) {
 	Test data: '{"type": 0 }'
 */
 func (h *Hub) handleIdentity(client *Client) {
-	id := strconv.FormatUint(client.userID, 10)
+	// We could simply get the sender userID from the client but it should really be checked via the subscriptions
+	subs := h.GetSubscriptions(client)
+	var id string
+
+	if len(subs) == 1 && subs[0].client.userID == client.userID {
+		id = strconv.FormatUint(subs[0].client.userID, 10)
+	} else {
+		fmt.Println("Something went wrong")
+	}
+
 	payload := "(Identity) Current userID: " + id
 	msg, err := json.Marshal(payload)
 
