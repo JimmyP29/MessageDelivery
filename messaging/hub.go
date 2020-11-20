@@ -50,14 +50,14 @@ func (h *Hub) AddClient(client Client) *Hub {
 func (h *Hub) GetSubscriptions(client *Client) []Subscription {
 	var subs []Subscription
 
-	for _, sub := range h.subscriptions {
-		if sub.client != nil {
+	for _, s := range h.subscriptions {
+		if s.client != nil {
 			if client != nil {
-				if sub.client.userID == client.userID {
-					subs = append(subs, sub)
+				if s.client.userID == client.userID {
+					subs = append(subs, s)
 				}
 			} else {
-				subs = append(subs, sub)
+				subs = append(subs, s)
 			}
 		}
 	}
@@ -74,19 +74,19 @@ func (h *Hub) Subscribe(client *Client) *Hub {
 	return h
 }
 
-// Publish - broadcasts a message on the websocket
+// Publish - publishes a message to all clients, minus the sender if client is nil
 func (h *Hub) Publish(message []byte, excludeClient *Client) {
-	subscriptions := h.GetSubscriptions(nil)
+	subs := h.GetSubscriptions(nil)
 
-	for _, sub := range subscriptions {
-		if sub.client != nil {
-			err := sub.client.connection.WriteMessage(1, message)
+	for _, s := range subs {
+		if s.client != nil {
+			err := s.client.connection.WriteMessage(1, message)
 
 			if err != nil {
 				log.Println(err)
 				return
 			}
-			fmt.Printf("Sending to client id %v with message %s \n", sub.client.userID, message)
+			fmt.Printf("Sending to client id %v with message %s \n", s.client.userID, message)
 		}
 	}
 }
@@ -104,18 +104,19 @@ func (h *Hub) publishToSender(message []byte, client *Client) {
 }
 
 /*
-	handleIdentity - handles the identity message type
+	handleIdentity - handles the Identity message type (Used to return the senders userID back to them)
 	Test data: '{"type": 0 }'
 */
 func (h *Hub) handleIdentity(client *Client) {
-	// We could simply get the sender userID from the client but it should really be checked via the subscriptions
+	/* We could simply get the sender userID from the client
+	but it should really be checked via the subscriptions */
 	subs := h.GetSubscriptions(client)
 	var id string
 
 	if len(subs) == 1 && subs[0].client.userID == client.userID {
 		id = strconv.FormatUint(subs[0].client.userID, 10)
 	} else {
-		fmt.Println("Something went wrong")
+		fmt.Println("Something went wrong - this client is not subscribed")
 	}
 
 	payload := "(Identity) Current userID: " + id
@@ -129,14 +130,16 @@ func (h *Hub) handleIdentity(client *Client) {
 	h.publishToSender(msg, client)
 }
 
-// handle list
+/*
+	handleList - handles the List message type (Used to return a list of all connected userID's (excluding the requesting client))
+	Test data: '{"type": 1 }'
+*/
 func (h *Hub) handleList(client *Client) {
 	subs := h.GetSubscriptions(nil)
 	var returnIDs []string
 
 	for _, s := range subs {
 		if s.client != nil {
-			//fmt.Printf("Sub: %+v \n", sub.client.userID)
 			if s.client.userID != client.userID {
 				returnIDs = append(returnIDs, strconv.FormatUint(s.client.userID, 10))
 			}
@@ -144,8 +147,13 @@ func (h *Hub) handleList(client *Client) {
 
 	}
 
-	fmt.Printf("returnIDs: %+v \n", returnIDs)
-	payload := "(List) Other current userIDs: " + strings.Join(returnIDs, ", ")
+	var payload string
+	if len(returnIDs) >= 1 {
+		payload = "(List) Other current userIDs: " + strings.Join(returnIDs, ", ")
+	} else {
+		payload = "(List) You are all alone!"
+	}
+
 	msg, err := json.Marshal(payload)
 
 	if err != nil {
@@ -203,7 +211,6 @@ func (h *Hub) HandleReceiveMessage(client Client, payload []byte) *Hub {
 			h.handleIdentity(&client)
 			break
 		case List:
-			//fmt.Printf("List: %v \n", List)
 			h.handleList(&client)
 			break
 		case Relay:
