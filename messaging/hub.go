@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/rand"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -129,6 +130,31 @@ func (h *Hub) handleIdentity(client *Client) {
 }
 
 // handle list
+func (h *Hub) handleList(client *Client) {
+	subs := h.GetSubscriptions(nil)
+	var returnIDs []string
+
+	for _, s := range subs {
+		if s.client != nil {
+			//fmt.Printf("Sub: %+v \n", sub.client.userID)
+			if s.client.userID != client.userID {
+				returnIDs = append(returnIDs, strconv.FormatUint(s.client.userID, 10))
+			}
+		}
+
+	}
+
+	fmt.Printf("returnIDs: %+v \n", returnIDs)
+	payload := "(List) Other current userIDs: " + strings.Join(returnIDs, ", ")
+	msg, err := json.Marshal(payload)
+
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	h.publishToSender(msg, client)
+}
 
 // handle relay
 
@@ -177,7 +203,8 @@ func (h *Hub) HandleReceiveMessage(client Client, payload []byte) *Hub {
 			h.handleIdentity(&client)
 			break
 		case List:
-			fmt.Printf("List: %v \n", List)
+			//fmt.Printf("List: %v \n", List)
+			h.handleList(&client)
 			break
 		case Relay:
 			fmt.Printf("Relay: %v \n", Relay)
