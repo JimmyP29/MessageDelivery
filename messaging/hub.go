@@ -19,15 +19,15 @@ type Hub struct {
 	subscriptions []Subscription
 }
 
+// NewHub creates a new hub
+func NewHub(clients []Client, subs []Subscription) *Hub {
+	return &Hub{clients, subs}
+}
+
 // Subscription - allows client to subscribe to the topic
 type Subscription struct {
 	topic  string
 	client *Client
-}
-
-// NewHub creates a new hub
-func NewHub(clients []Client, subs []Subscription) *Hub {
-	return &Hub{clients, subs}
 }
 
 func newSubscription(topic string, client *Client) *Subscription {
@@ -47,8 +47,17 @@ func (h *Hub) AddClient(client Client) *Hub {
 	return h
 }
 
-// GetSubscriptions - returns a slice of all Subscriptions in the Hub, omits sender if client is nil
-func (h *Hub) GetSubscriptions(client *Client) []Subscription {
+// Subscribe - creates new subcription to topic
+func (h *Hub) Subscribe(client *Client) *Hub {
+	s := newSubscription(topic, client)
+	h.subscriptions = append(h.subscriptions, *s)
+
+	fmt.Printf("Client %v has been subscribed to the %s topic \n", client.userID, topic)
+	return h
+}
+
+// getSubscriptions - returns a slice of all Subscriptions in the Hub, omits sender if client is nil
+func (h *Hub) getSubscriptions(client *Client) []Subscription {
 	var subs []Subscription
 
 	for _, s := range h.subscriptions {
@@ -66,7 +75,7 @@ func (h *Hub) GetSubscriptions(client *Client) []Subscription {
 	return subs
 }
 
-// GetRequestedSubscriptions - returns all subscriptions from a slice of userIDs
+// getRequestedSubscriptions - returns all subscriptions from a slice of userIDs
 func (h *Hub) getRequestedSubscriptions(ids []uint64) []Subscription {
 	var subs []Subscription
 
@@ -89,15 +98,6 @@ func (h *Hub) getRequestedSubscriptions(ids []uint64) []Subscription {
 	return subs
 }
 
-// Subscribe - creates new subcription to topic
-func (h *Hub) Subscribe(client *Client) *Hub {
-	s := newSubscription(topic, client)
-	h.subscriptions = append(h.subscriptions, *s)
-
-	fmt.Printf("Client %v has been subscribed to the %s topic \n", client.userID, topic)
-	return h
-}
-
 // publishToSender - publishes a message back to the original sender only
 func (h *Hub) publishToSender(message []byte, client *Client) {
 	err := client.connection.WriteMessage(1, message)
@@ -110,6 +110,7 @@ func (h *Hub) publishToSender(message []byte, client *Client) {
 	fmt.Printf("Sending to client id %v with message %s \n", client.userID, message)
 }
 
+// publishToReceivers - publishes a message to each subscription that exists based on the subs that are passed in
 func (h *Hub) publishToReceivers(message []byte, subs []Subscription) {
 	for _, s := range subs {
 		if s.client != nil {
@@ -132,7 +133,7 @@ func (h *Hub) publishToReceivers(message []byte, subs []Subscription) {
 func (h *Hub) handleIdentity(client *Client) {
 	/* We could simply get the sender userID from the client
 	but it should really be checked via the subscriptions */
-	subs := h.GetSubscriptions(client)
+	subs := h.getSubscriptions(client)
 	var id string
 
 	if len(subs) == 1 && subs[0].client.userID == client.userID {
@@ -157,7 +158,7 @@ func (h *Hub) handleIdentity(client *Client) {
 	Test data: '{"type": 1 }'
 */
 func (h *Hub) handleList(client *Client) {
-	subs := h.GetSubscriptions(nil)
+	subs := h.getSubscriptions(nil)
 	var returnIDs []string
 
 	for _, s := range subs {
@@ -166,7 +167,6 @@ func (h *Hub) handleList(client *Client) {
 				returnIDs = append(returnIDs, strconv.FormatUint(s.client.userID, 10))
 			}
 		}
-
 	}
 
 	var payload string
