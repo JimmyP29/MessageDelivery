@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -46,7 +47,7 @@ func (h *Hub) AddClient(client Client) *Hub {
 	return h
 }
 
-// GetSubscriptions - returns a slice of all Subscriptions in the Hub
+// GetSubscriptions - returns a slice of all Subscriptions in the Hub, omits sender if client is nil
 func (h *Hub) GetSubscriptions(client *Client) []Subscription {
 	var subs []Subscription
 
@@ -57,6 +58,29 @@ func (h *Hub) GetSubscriptions(client *Client) []Subscription {
 					subs = append(subs, s)
 				}
 			} else {
+				subs = append(subs, s)
+			}
+		}
+	}
+
+	return subs
+}
+
+// GetRequestedSubscriptions - returns all subscriptions from a slice of userIDs
+func (h *Hub) getRequestedSubscriptions(ids []uint64) []Subscription {
+	var subs []Subscription
+
+	for _, s := range h.subscriptions {
+		if s.client != nil {
+			inBoth := false
+			for _, i := range ids {
+				if i == s.client.userID {
+					inBoth = true
+					break
+				}
+			}
+
+			if inBoth {
 				subs = append(subs, s)
 			}
 		}
@@ -101,6 +125,21 @@ func (h *Hub) publishToSender(message []byte, client *Client) {
 	}
 
 	fmt.Printf("Sending to client id %v with message %s \n", client.userID, message)
+}
+
+func (h *Hub) publishToReceivers(message []byte, subs []Subscription) {
+	for _, s := range subs {
+		if s.client != nil {
+			err := s.client.connection.WriteMessage(1, message)
+
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			fmt.Printf("Sending to client id %v with message %s \n", s.client.userID, message)
+		}
+	}
 }
 
 /*
@@ -165,6 +204,58 @@ func (h *Hub) handleList(client *Client) {
 }
 
 // handle relay
+func (h *Hub) handleRelay(client *Client, message *Message) {
+
+	fmt.Printf("before: %+v", message.ClientIDS)
+	sort.SliceStable(message.ClientIDS, func(i, j int) bool {
+		return message.ClientIDS[i] < message.ClientIDS[j]
+	})
+	subs := h.getRequestedSubscriptions(message.ClientIDS)
+
+	var payload string
+	if len(subs) > 0 {
+		fmt.Printf("subs: %+v", subs)
+		// for _, s := range subs {
+		// 	if s.client != nil {
+		// 		//if s.client.userID ==
+		// 		//test := sort.SearchInts(message.ClientIDs, s.client.userID)
+		// 	}
+		// }
+		bytes, err := json.Marshal(message.Body)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		var body string
+		err = json.Unmarshal(bytes, &body)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		payload = "(Relay) - " + body
+		msg, err := json.Marshal(payload)
+
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		h.publishToReceivers(msg, subs)
+	} else {
+		payload = "There are no clients that match that/those userID/s"
+		fmt.Println(payload)
+
+		msg, err := json.Marshal(payload)
+
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		h.publishToSender(msg, client)
+	}
+
+}
 
 /*
 	handleDefault - handles the default case when the message type is not recognised
@@ -214,7 +305,8 @@ func (h *Hub) HandleReceiveMessage(client Client, payload []byte) *Hub {
 			h.handleList(&client)
 			break
 		case Relay:
-			fmt.Printf("Relay: %v \n", Relay)
+			//fmt.Printf("Relay: %v \n", Relay)
+			h.handleRelay(&client, &m)
 			break
 		default:
 			h.handleDefault(&client)
