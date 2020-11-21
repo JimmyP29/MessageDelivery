@@ -11,6 +11,7 @@ type ValidateRequestResult struct {
 
 var validateRequestResults = []ValidateRequestResult{
 	{make([]Subscription, 100, 100), "foobar", true, true},
+	{make([]Subscription, 256, 256), "foobar", false, true},
 }
 
 func TestValidateRequest(t *testing.T) {
