@@ -11,11 +11,7 @@ import (
 	"time"
 )
 
-const (
-	topic        = "Multiplay"
-	maxReceivers = 255
-	maxBodySize  = 1024 //KB (1 MB)
-)
+var topic = "Multiplay"
 
 // Hub - used to control message flow to clients
 type Hub struct {
@@ -147,14 +143,16 @@ func (h *Hub) handleIdentity(client *Client) {
 	}
 
 	payload := "(Identity) Current userID: " + id
-	msg, err := json.Marshal(payload)
+	// msg, err := json.Marshal(payload)
 
-	if err != nil {
-		log.Println(err)
-		return
+	// if err != nil {
+	// 	log.Println(err)
+	// 	return
+	// }
+	msg, isOK := SerialiseString(payload)
+	if isOK {
+		h.publishToSender(msg, client)
 	}
-
-	h.publishToSender(msg, client)
 }
 
 /*
@@ -180,14 +178,10 @@ func (h *Hub) handleList(client *Client) {
 		payload = "(List) You are all alone!"
 	}
 
-	msg, err := json.Marshal(payload)
-
-	if err != nil {
-		log.Println(err)
-		return
+	msg, isOK := SerialiseString(payload)
+	if isOK {
+		h.publishToSender(msg, client)
 	}
-
-	h.publishToSender(msg, client)
 }
 
 /*
@@ -199,47 +193,58 @@ func (h *Hub) handleRelay(client *Client, message *Message) {
 		return message.ClientIDS[i] < message.ClientIDS[j]
 	})
 	subs := h.getRequestedSubscriptions(message.ClientIDS)
-	bytes, err := json.Marshal(message.Body)
-	if err != nil {
-		log.Println(err)
-		return
-	}
+	// bytes, err := json.Marshal(message.Body)
+	// if err != nil {
+	// 	log.Println(err)
+	// 	return
+	// }
 
-	var body string
-	err = json.Unmarshal(bytes, &body)
-	if err != nil {
-		log.Println(err)
-		return
-	}
+	// var body string
+	// err = json.Unmarshal(bytes, &body)
+	// if err != nil {
+	// 	log.Println(err)
+	// 	return
+	// }
+	body, isOk := DeserialiseString(message.Body)
+	fmt.Println(body)
+	if isOk {
+		var payload string
+		okSubs, okBody := ValidateRequest(subs, body)
 
-	var payload string
-	okSubs, okBody := h.validateRequest(subs, body)
+		if okSubs && okBody {
+			if len(subs) > 0 {
+				payload = "(Relay) - " + body
+				// msg, err := json.Marshal(payload)
 
-	if okSubs && okBody {
-		if len(subs) > 0 {
-			payload = "(Relay) - " + body
-			msg, err := json.Marshal(payload)
+				// if err != nil {
+				// 	log.Println(err)
+				// 	return
+				// }
+				msg, isOK := SerialiseString(payload)
+				if isOK {
+					h.publishToReceivers(msg, subs)
+				}
 
-			if err != nil {
-				log.Println(err)
-				return
+			} else {
+				payload = "There are no clients that match that/those userID/s"
+				fmt.Println(payload)
+
+				// msg, err := json.Marshal(payload)
+
+				// if err != nil {
+				// 	log.Println(err)
+				// 	return
+				// }
+
+				msg, isOK := SerialiseString(payload)
+				if isOK {
+					h.publishToSender(msg, client)
+				}
+
 			}
-
-			h.publishToReceivers(msg, subs)
-		} else {
-			payload = "There are no clients that match that/those userID/s"
-			fmt.Println(payload)
-
-			msg, err := json.Marshal(payload)
-
-			if err != nil {
-				log.Println(err)
-				return
-			}
-
-			h.publishToSender(msg, client)
 		}
 	}
+
 }
 
 /*
@@ -250,22 +255,24 @@ func (h *Hub) handleDefault(client *Client) {
 	payload := "Unrecognised message type, please use ints only: " +
 		"0: Identity, 1: List, 2: Relay"
 
-	msg, err := json.Marshal(payload)
+		// msg, err := json.Marshal(payload)
 
-	if err != nil {
-		log.Println(err)
-		return
+		// if err != nil {
+		// 	log.Println(err)
+		// 	return
+		// }
+	msg, isOK := SerialiseString(payload)
+	if isOK {
+		fmt.Println(payload)
+		h.publishToSender(msg, client)
 	}
-
-	fmt.Println(payload)
-	h.publishToSender(msg, client)
 }
 
-func (h *Hub) validateRequest(subs []Subscription, body string) (okSubs bool, okBody bool) {
-	okSubs = len(subs) <= maxReceivers
-	okBody = true //TODO
-	return
-}
+// func (h *Hub) validateRequest(subs []Subscription, body string) (okSubs bool, okBody bool) {
+// 	okSubs = len(subs) <= maxReceivers
+// 	okBody = true //TODO
+// 	return
+// }
 
 // HandleReceiveMessage - handle the messages incoming from the websocket
 func (h *Hub) HandleReceiveMessage(client Client, payload []byte) *Hub {
