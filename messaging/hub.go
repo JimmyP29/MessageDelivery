@@ -203,7 +203,10 @@ func (h *Hub) handleList(client *Client) {
 	h.publishToSender(msg, client)
 }
 
-// handle relay
+/*
+	handleRelay - handles the Relay message type (Used to relay a given message body to selected receivers in the message)
+	Test data (where 1, 2, 3 has to be existing userIDs, use a List call above first :) ): '{"type": 2, "body": "foobar", "clientIDS": [1, 2, 3]}'
+*/
 func (h *Hub) handleRelay(client *Client, message *Message) {
 
 	fmt.Printf("before: %+v", message.ClientIDS)
