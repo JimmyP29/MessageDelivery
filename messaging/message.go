@@ -19,6 +19,5 @@ const (
 type Message struct {
 	MsgType   messageType     `json:"type"`
 	Body      json.RawMessage `json:"body"`
-	SenderID  uint64          `json:"senderID"`
 	ClientIDS []uint64        `json:"clientIDS"`
 }
