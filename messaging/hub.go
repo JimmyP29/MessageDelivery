@@ -217,24 +217,19 @@ func (h *Hub) handleRelay(client *Client, message *Message) {
 
 	var payload string
 	if len(subs) > 0 {
-		fmt.Printf("subs: %+v", subs)
-		// for _, s := range subs {
-		// 	if s.client != nil {
-		// 		//if s.client.userID ==
-		// 		//test := sort.SearchInts(message.ClientIDs, s.client.userID)
-		// 	}
-		// }
 		bytes, err := json.Marshal(message.Body)
 		if err != nil {
 			log.Println(err)
 			return
 		}
+
 		var body string
 		err = json.Unmarshal(bytes, &body)
 		if err != nil {
 			log.Println(err)
 			return
 		}
+
 		payload = "(Relay) - " + body
 		msg, err := json.Marshal(payload)
 
@@ -282,8 +277,6 @@ func (h *Hub) handleDefault(client *Client) {
 // HandleReceiveMessage - handle the messages incoming from the websocket
 func (h *Hub) HandleReceiveMessage(client Client, payload []byte) *Hub {
 	m := Message{}
-
-	// test data: '{"type": 1, "body": "foobar", "senderID": 110, "clientIDS": [123, 456, 789]}'
 	err := json.Unmarshal(payload, &m)
 
 	if err != nil {
@@ -291,14 +284,6 @@ func (h *Hub) HandleReceiveMessage(client Client, payload []byte) *Hub {
 		return h
 	}
 
-	// fmt.Printf("Valid payload :)\n"+
-	// 	"MsgType: %v\n Body: %v\n SenderID: %v\n ClientIDS: %+v\n",
-	// 	m.MsgType,
-	// 	string(m.Body),
-	// 	m.SenderID,
-	// 	m.ClientIDS)
-
-	// switch for identity, list, relay
 	if &client != nil {
 		switch m.MsgType {
 		case Identity:
@@ -308,7 +293,6 @@ func (h *Hub) HandleReceiveMessage(client Client, payload []byte) *Hub {
 			h.handleList(&client)
 			break
 		case Relay:
-			//fmt.Printf("Relay: %v \n", Relay)
 			h.handleRelay(&client, &m)
 			break
 		default:
@@ -319,6 +303,5 @@ func (h *Hub) HandleReceiveMessage(client Client, payload []byte) *Hub {
 		fmt.Println("Invalid client")
 	}
 
-	//h.Publish(m.Body, nil)
 	return h
 }
