@@ -66,6 +66,8 @@ I have 2 issues with this approach:
 1. The onus of a client subscribing is on the Topic resource - not the Hub in my application. This makes it harder to control which client recieves what and also doesn't meet the requirement.
 2. I don't think the reader will be able to run this all locally as I have my own private API key and subscription to Google Cloud. This isn't going to be put into any kind of config and this application won't be deployed anywhere, so although I learnt some new things - I don't think this is going to be appropriate for this project.
 
+:thinking:
+
 So I am going to revisit the idea of `websockets`. I think I can create a 'pubsub' like mechanism but I can put the control of subscribing within the `Hub`. It should also work within the contained project with no need to connect to cloud services, finally it is still operating on the network layer and as such - meets the requirement. 
 
 I have worked a bit with websockets in the past and they have been awkward to work with and test, also I have never used them where the 'client' isn't a browser - so something new there. The package at [gorilla/websocket](https://github.com/gorilla/websocket) seems simple to implement, and I know that Gorilla is a respected third party. 
@@ -82,4 +84,5 @@ I'm breaking the workload as close as I can at first into the following tasks:
 
 - ~~`Task 1` Create initial project structure, set up structs and work flow with sockets to get the `Hub` sending messages to a `Client`.~~ :heavy_check_mark:
 - ~~`Task 2` Refine the messages to the 3 different types outlined in the requirements.~~ :heavy_check_mark:
-- `Task 3` Adding Unit tests.
+- `Task 3` Awesome, it works! :grin:. I would like to squeeze in an additional task at this point for refactoring (also I forgot to add some checks in task 2, which tbf if I was taking a TDD approach I would have realised sooner and wouldn't have merged to `main`).
+- `Task 4` Adding Unit tests.
