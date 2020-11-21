@@ -30,5 +30,6 @@ func DeserialiseString(raw json.RawMessage) (s string, isOK bool) {
 		log.Println(err)
 		return "", false
 	}
+
 	return s, true
 }
