@@ -81,5 +81,5 @@ I know that the requirements said I can use any library I wish and I don't doubt
 I'm breaking the workload as close as I can at first into the following tasks:
 
 - ~~`Task 1` Create initial project structure, set up structs and work flow with sockets to get the `Hub` sending messages to a `Client`.~~ :heavy_check_mark:
-- `Task 2` Refine the messages to the 3 different types outlined in the requirements.
+- ~~`Task 2` Refine the messages to the 3 different types outlined in the requirements.~~ :heavy_check_mark:
 - `Task 3` Adding Unit tests.
