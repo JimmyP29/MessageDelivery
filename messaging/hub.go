@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-var topic = "TechTest"
+var topic = "Multiplay"
 
 // Hub - used to control message flow to clients
 type Hub struct {
@@ -96,23 +96,6 @@ func (h *Hub) Subscribe(client *Client) *Hub {
 
 	fmt.Printf("Client %v has been subscribed to the %s topic \n", client.userID, topic)
 	return h
-}
-
-// Publish - publishes a message to all clients, minus the sender if client is nil
-func (h *Hub) Publish(message []byte, excludeClient *Client) {
-	subs := h.GetSubscriptions(nil)
-
-	for _, s := range subs {
-		if s.client != nil {
-			err := s.client.connection.WriteMessage(1, message)
-
-			if err != nil {
-				log.Println(err)
-				return
-			}
-			fmt.Printf("Sending to client id %v with message %s \n", s.client.userID, message)
-		}
-	}
 }
 
 // publishToSender - publishes a message back to the original sender only
