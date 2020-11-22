@@ -99,31 +99,33 @@ func (h *Hub) getRequestedSubscriptions(ids []uint64) []Subscription {
 }
 
 // publishToSender - publishes a message back to the original sender only
-func (h *Hub) publishToSender(message []byte, client *Client) {
+func (h *Hub) publishToSender(message []byte, client *Client) (isOK bool) {
 	err := client.connection.WriteMessage(1, message)
 
 	if err != nil {
 		log.Println(err)
-		return
+		return false
 	}
 
 	fmt.Printf("Sending to client id %v with message %s \n", client.userID, message)
+	return true
 }
 
 // publishToReceivers - publishes a message to each subscription that exists based on the subs that are passed in
-func (h *Hub) publishToReceivers(message []byte, subs []Subscription) {
+func (h *Hub) publishToReceivers(message []byte, subs []Subscription) (isOK bool) {
 	for _, s := range subs {
 		if s.client != nil {
 			err := s.client.connection.WriteMessage(1, message)
 
 			if err != nil {
 				log.Println(err)
-				return
+				return false
 			}
 
 			fmt.Printf("Sending to client id %v with message %s \n", s.client.userID, message)
 		}
 	}
+	return true
 }
 
 /*
@@ -146,7 +148,10 @@ func (h *Hub) handleIdentity(client *Client) {
 	msg, isOK := SerialiseString(payload)
 
 	if isOK {
-		h.publishToSender(msg, client)
+		isOK := h.publishToSender(msg, client)
+		if !isOK {
+			fmt.Println("Failed to publish to sender")
+		}
 	}
 }
 
@@ -177,7 +182,10 @@ func (h *Hub) handleList(client *Client) {
 	msg, isOK := SerialiseString(payload)
 
 	if isOK {
-		h.publishToSender(msg, client)
+		isOK := h.publishToSender(msg, client)
+		if !isOK {
+			fmt.Println("Failed to publish to sender")
+		}
 	}
 }
 
@@ -203,14 +211,20 @@ func (h *Hub) handleRelay(client *Client, message *Message) {
 				msg, isOK := SerialiseString(payload)
 
 				if isOK {
-					h.publishToReceivers(msg, subs)
+					isOK := h.publishToReceivers(msg, subs)
+					if !isOK {
+						fmt.Println("Failed to publish")
+					}
 				}
 			} else {
 				payload = "There are no clients that match that/those userID/s"
 				msg, isOK := SerialiseString(payload)
 
 				if isOK {
-					h.publishToSender(msg, client)
+					isOK := h.publishToSender(msg, client)
+					if !isOK {
+						fmt.Println("Failed to publish to sender")
+					}
 				}
 
 			}
@@ -218,13 +232,19 @@ func (h *Hub) handleRelay(client *Client, message *Message) {
 			msg, isOK := SerialiseString(retMsg)
 
 			if isOK {
-				h.publishToSender(msg, client)
+				isOK := h.publishToSender(msg, client)
+				if !isOK {
+					fmt.Println("Failed to publish to sender")
+				}
 			}
 		} else if !okBody {
 			msg, isOK := SerialiseString(retMsg)
 
 			if isOK {
-				h.publishToSender(msg, client)
+				isOK := h.publishToSender(msg, client)
+				if !isOK {
+					fmt.Println("Failed to publish to sender")
+				}
 			}
 		}
 	}
@@ -242,7 +262,10 @@ func (h *Hub) handleDefault(client *Client) {
 
 	if isOK {
 		fmt.Println(payload)
-		h.publishToSender(msg, client)
+		isOK := h.publishToSender(msg, client)
+		if !isOK {
+			fmt.Println("Failed to publish to sender")
+		}
 	}
 }
 
