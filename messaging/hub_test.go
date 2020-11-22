@@ -35,13 +35,6 @@ var hub = Hub{
 	subscriptions: subs,
 }
 
-//var hub = NewHub(clients, subs)
-
-// var hub = NewHub(
-// 	make([]Client, 100),
-// 	make([]Subscription, 100),
-// )
-
 type NewHubResult struct {
 	clients       []Client
 	subscriptions []Subscription
