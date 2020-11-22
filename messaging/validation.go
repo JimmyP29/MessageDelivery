@@ -1,5 +1,7 @@
 package messaging
 
+import "strconv"
+
 const (
 	maxReceivers = 255
 	maxBodySize  = 1024 //KB (1 MB)
@@ -12,7 +14,8 @@ func ValidateRequest(subs []Subscription, body string) (okSubs bool, okBody bool
 		retMsg = ""
 	} else {
 		okSubs = false
-		retMsg = "Too many clientIDs provided. MAX: " + string(maxReceivers)
+		retMsg = "Too many clientIDs provided. MAX: " +
+			strconv.FormatUint(maxReceivers, 10)
 	}
 	okBody = true //TODO
 	return
