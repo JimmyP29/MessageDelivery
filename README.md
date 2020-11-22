@@ -111,24 +111,23 @@ Go to `localhost:8888` in a browser, this automatically creates a new `Client`, 
 
 From here fire the following commands to send messages.
 
-- `Messages` 
-    - ### Identity
-        ```js
-        ws.send('{"type": 0 }');
-        ```
-        ![Image of identity output in browser console](/README_assets/identity_output.PNG "Image of identity output in browser console")
-    - ### List message
-        ```js
-        ws.send('{"type": 1 }');
-        ```
-        ![Image of list output in browser console](/README_assets/list_output.PNG "Image of list output in browser console")
-    - ### Relay message    
-        ```js
-        ws.send('{"type": 1, "body": "foobar", "clientIDS": [288, 458] }');
-        ```
-        Then looking at another client (458 in this example) yields:
-        
-        ![Image of relay output in browser console for client 458](/README_assets/relay_output_458.PNG "Image of relay output in browser console for client 458")
+- ### Identity
+    ```js
+    ws.send('{"type": 0 }');
+    ```
+    ![Image of identity output in browser console](/README_assets/identity_output.PNG "Image of identity output in browser console")
+- ### List message
+    ```js
+    ws.send('{"type": 1 }');
+    ```
+    ![Image of list output in browser console](/README_assets/list_output.PNG "Image of list output in browser console")
+- ### Relay message    
+    ```js
+    ws.send('{"type": 2, "body": "foobar", "clientIDS": [288, 458] }');
+    ```
+    Then looking at another client (458 in this example) yields:
+
+    ![Image of relay output in browser console for client 458](/README_assets/relay_output_458.PNG "Image of relay output in browser console for client 458")
 
         
         
@@ -154,6 +153,7 @@ Again, having not used Go much at all in the past, this was a learning experienc
 - The [Go docs](https://golang.org/doc/)
 - This specific doc for [pubsub](https://godoc.org/cloud.google.com/go/pubsub) (pubsub spike).
 - This [Google Cloud article](https://cloud.google.com/pubsub/docs/quickstart-client-libraries#create-topic-sub) (pubsub spike).
-- This [article](https://www.ribice.ba/golang-enums/) about using variables in a way similar to enums in other languages.
 - This [YouTube video](https://www.youtube.com/watch?v=Sphme0BqJiY&t=324s) which demonstrated creating a small TCP chat in Go (Websocket spike)
+- This [article](https://www.ribice.ba/golang-enums/) about using variables in a way similar to enums in other languages.
 - This [YouTube video](https://www.youtube.com/watch?v=yyREnTgRTQ0&t=899s) which demonstrated using a websocket to create a local pubsub implementation. This helped me __a lot__ with the initial setup for the project.
+- This [Youtube video](https://www.youtube.com/watch?v=sOeUf1YICSA&list=PLShDm2AZYnK2BEw4ltBF67U3qBamg1ts3) and this [Youtube video](https://www.youtube.com/watch?v=S1O0XI0scOM) with regards to unit testing.
