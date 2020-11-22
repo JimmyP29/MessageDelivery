@@ -84,8 +84,76 @@ I'm breaking the workload as close as I can at first into the following tasks:
 
 - ~~`Task 1` Create initial project structure, set up structs and work flow with sockets to get the `Hub` sending messages to a `Client`.~~ :heavy_check_mark:
 - ~~`Task 2` Refine the messages to the 3 different types outlined in the requirements.~~ :heavy_check_mark:
-- `Task 3` Awesome, it works! :grin:. I would like to squeeze in an additional task at this point for refactoring (also I forgot to add some checks in task 2 __`*`__ , which tbf if I was taking a TDD approach I would have realised sooner and wouldn't have merged to `main`).
+- ~~`Task 3` I would like to squeeze in an additional task at this point for refactoring (also I forgot to add some checks in task 2 __`*`__ , which tbf if I was taking a TDD approach I would have realised sooner and wouldn't have merged to `main`).~~ :heavy_check_mark: Awesome, it works! :grin:.
 - `Task 4` Adding Unit tests.
 
 __`*`__ 
 I still need to figure out the message body size problem. I am going to move onto testing for now.
+
+## Finished.
+
+__How does it work?__
+
+The `Hub` is created upon the project first running.
+
+Using `gorilla/websocket`, a socket is setup in `main.go` as soon as it's run. At the same time a static html file is servered which itself creates a new `WebSocket` object in JavaScript.
+
+*Once the project is running...*
+
+Go to `localhost:8888` in a browser, this automatically creates a new `Client`, assigning them a random __`uint64`__ `userID` and subscribing them to the `Hub` using the `Multiplay` topic. Hit f12 and open the __console__ to interact with the service. 
+
+![Image of 'connected' in browser console](/README_assets/connected.PNG "Image of 'connected' in browser console")
+
+(You're going to want to do this at least twice so there is more than one client)
+![Image of (list) with one client in browser console](/README_assets/list_output_lonely.PNG "Nobody wants to be lonely :(")
+
+---
+
+From here fire the following commands to send messages.
+
+- ### Identity
+    ```js
+    ws.send('{"type": 0 }');
+    ```
+    ![Image of identity output in browser console](/README_assets/identity_output.PNG "Image of identity output in browser console")
+- ### List message
+    ```js
+    ws.send('{"type": 1 }');
+    ```
+    ![Image of list output in browser console](/README_assets/list_output.PNG "Image of list output in browser console")
+- ### Relay message    
+    ```js
+    ws.send('{"type": 2, "body": "foobar", "clientIDS": [288, 458] }');
+    ```
+    Then looking at another client (458 in this example) yields:
+
+    ![Image of relay output in browser console for client 458](/README_assets/relay_output_458.PNG "Image of relay output in browser console for client 458")
+
+        
+        
+        
+        
+## Well... Almost.
+The only thing that prevents this being 100% code complete - is the validation for the message body size. I wrongly assumed that this would be a case of using some method from the standard lib in order to get this data. 
+
+I played with:
+```go
+binary.Size(v interface{} int)
+```
+
+as well as
+```go
+unsafe.Sizeof(x ArbitraryType) uintptr
+```
+
+Using either one of these with my `[]byte` returned a value that didn't change when increaing the message body and trying again. I believe it returns an expected value based upon the slice type, not what the slice actually will hold in memory. I hope though despite this omission, the reader will be able to see my intent with the `validation.go` file. I would have probably needed to create a second, private method that would be consumed within `ValidateRequest()`, then based on the return, the validation would behave accordingly.
+
+## Resources
+Again, having not used Go much at all in the past, this was a learning experience as much as anything else. In order to do this I needed to find resources to help me achieve what I ended up with. As such I'd like to credit those sources here.
+- The [Go docs](https://golang.org/doc/)
+- This specific doc for [pubsub](https://godoc.org/cloud.google.com/go/pubsub) (pubsub spike).
+- This [Google Cloud article](https://cloud.google.com/pubsub/docs/quickstart-client-libraries#create-topic-sub) (pubsub spike).
+- This [YouTube video](https://www.youtube.com/watch?v=Sphme0BqJiY&t=324s) which demonstrated creating a small TCP chat in Go (Websocket spike)
+- This [article](https://www.ribice.ba/golang-enums/) about using variables in a way similar to enums in other languages.
+- This [YouTube video](https://www.youtube.com/watch?v=yyREnTgRTQ0&t=899s) which demonstrated using a websocket to create a local pubsub implementation. This helped me __a lot__ with the initial setup for the project.
+- This [Youtube video](https://www.youtube.com/watch?v=sOeUf1YICSA&list=PLShDm2AZYnK2BEw4ltBF67U3qBamg1ts3) and this [Youtube video](https://www.youtube.com/watch?v=S1O0XI0scOM) with regards to unit testing.

@@ -6,8 +6,14 @@ const (
 )
 
 // ValidateRequest - validates an incoming Relay message sub count and body size in line with requirements
-func ValidateRequest(subs []Subscription, body string) (okSubs bool, okBody bool) {
-	okSubs = len(subs) <= maxReceivers
+func ValidateRequest(subs []Subscription, body string) (okSubs bool, okBody bool, retMsg string) {
+	if len(subs) <= maxReceivers {
+		okSubs = true
+		retMsg = ""
+	} else {
+		okSubs = false
+		retMsg = "Too many clientIDs provided. MAX: " + string(maxReceivers)
+	}
 	okBody = true //TODO
 	return
 }
