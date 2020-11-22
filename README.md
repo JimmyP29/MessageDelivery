@@ -85,7 +85,7 @@ I'm breaking the workload as close as I can at first into the following tasks:
 - ~~`Task 1` Create initial project structure, set up structs and work flow with sockets to get the `Hub` sending messages to a `Client`.~~ :heavy_check_mark:
 - ~~`Task 2` Refine the messages to the 3 different types outlined in the requirements.~~ :heavy_check_mark:
 - ~~`Task 3` I would like to squeeze in an additional task at this point for refactoring (also I forgot to add some checks in task 2 __`*`__ , which tbf if I was taking a TDD approach I would have realised sooner and wouldn't have merged to `main`).~~ :heavy_check_mark: Awesome, it works! :grin:.
-- `Task 4` Adding Unit tests.
+- ~~`Task 4` Adding Unit tests.~~ :heavy_check_mark:
 
 __`*`__ 
 I still need to figure out the message body size problem. I am going to move onto testing for now.
