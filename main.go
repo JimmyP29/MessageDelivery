@@ -15,8 +15,8 @@ var upgrader = websocket.Upgrader{
 }
 
 var hub = messaging.NewHub(
-	make([]messaging.Client, 100),
-	make([]messaging.Subscription, 100),
+	make([]messaging.Client, 0),
+	make([]messaging.Subscription, 0),
 )
 
 func websocketHandler(w http.ResponseWriter, r *http.Request) {
