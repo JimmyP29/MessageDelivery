@@ -132,7 +132,7 @@ func (h *Hub) publishToReceivers(message []byte, subs []Subscription) (isOK bool
 	handleIdentity - handles the Identity message type (Used to return the senders userID back to them)
 	Test data: '{"type": 0 }'
 */
-func (h *Hub) handleIdentity(client *Client) {
+func (h *Hub) handleIdentity(client *Client) (isOK bool) {
 	/* We could simply get the sender userID from the client
 	but it should really be checked via the subscriptions */
 	subs := h.getSubscriptions(client)
@@ -142,6 +142,7 @@ func (h *Hub) handleIdentity(client *Client) {
 		id = strconv.FormatUint(subs[0].client.userID, 10)
 	} else {
 		fmt.Println("Something went wrong - this client is not subscribed")
+		return false
 	}
 
 	payload := "(Identity) Current userID: " + id
@@ -151,15 +152,17 @@ func (h *Hub) handleIdentity(client *Client) {
 		isOK := h.publishToSender(msg, client)
 		if !isOK {
 			fmt.Println("Failed to publish to sender")
+			return false
 		}
 	}
+	return true
 }
 
 /*
 	handleList - handles the List message type (Used to return a list of all connected userID's (excluding the requesting client))
 	Test data: '{"type": 1 }'
 */
-func (h *Hub) handleList(client *Client) {
+func (h *Hub) handleList(client *Client) (isOK bool) {
 	subs := h.getSubscriptions(nil)
 	var returnIDs []string
 
@@ -185,15 +188,18 @@ func (h *Hub) handleList(client *Client) {
 		isOK := h.publishToSender(msg, client)
 		if !isOK {
 			fmt.Println("Failed to publish to sender")
+			return false
 		}
 	}
+
+	return true
 }
 
 /*
 	handleRelay - handles the Relay message type (Used to relay a given message body to selected receivers in the message)
 	Test data (where 1, 2, 3 has to be existing userIDs, use a List call above first :) ): '{"type": 2, "body": "foobar", "clientIDS": [1, 2, 3]}'
 */
-func (h *Hub) handleRelay(client *Client, message *Message) {
+func (h *Hub) handleRelay(client *Client, message *Message) (isOK bool) {
 	sort.SliceStable(message.ClientIDS, func(i, j int) bool {
 		return message.ClientIDS[i] < message.ClientIDS[j]
 	})
@@ -235,6 +241,7 @@ func (h *Hub) handleRelay(client *Client, message *Message) {
 				isOK := h.publishToSender(msg, client)
 				if !isOK {
 					fmt.Println("Failed to publish to sender")
+					return false
 				}
 			}
 		} else if !okBody {
@@ -244,11 +251,13 @@ func (h *Hub) handleRelay(client *Client, message *Message) {
 				isOK := h.publishToSender(msg, client)
 				if !isOK {
 					fmt.Println("Failed to publish to sender")
+					return false
 				}
 			}
 		}
 	}
 
+	return true
 }
 
 /*
@@ -282,13 +291,22 @@ func (h *Hub) HandleReceiveMessage(client Client, payload []byte) *Hub {
 	if &client != nil {
 		switch m.MsgType {
 		case Identity:
-			h.handleIdentity(&client)
+			isOK := h.handleIdentity(&client)
+			if !isOK {
+				fmt.Println("Failed to handle identity message")
+			}
 			break
 		case List:
-			h.handleList(&client)
+			isOK := h.handleList(&client)
+			if !isOK {
+				fmt.Println("Failed to handle list message")
+			}
 			break
 		case Relay:
-			h.handleRelay(&client, &m)
+			isOK := h.handleRelay(&client, &m)
+			if !isOK {
+				fmt.Println("Failed to handle relay message")
+			}
 			break
 		default:
 			h.handleDefault(&client)
