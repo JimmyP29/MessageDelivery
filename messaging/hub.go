@@ -264,7 +264,7 @@ func (h *Hub) handleRelay(client *Client, message *Message) (isOK bool) {
 	handleDefault - handles the default case when the message type is not recognised
 	Test data: '{"type": 3 }'
 */
-func (h *Hub) handleDefault(client *Client) {
+func (h *Hub) handleDefault(client *Client) (isOK bool) {
 	payload := "Unrecognised message type, please use ints only: " +
 		"0: Identity, 1: List, 2: Relay"
 	msg, isOK := SerialiseString(payload)
@@ -274,8 +274,11 @@ func (h *Hub) handleDefault(client *Client) {
 		isOK := h.publishToSender(msg, client)
 		if !isOK {
 			fmt.Println("Failed to publish to sender")
+			return false
 		}
 	}
+
+	return true
 }
 
 // HandleReceiveMessage - handles the messages incoming from the websocket
@@ -309,7 +312,10 @@ func (h *Hub) HandleReceiveMessage(client Client, payload []byte) *Hub {
 			}
 			break
 		default:
-			h.handleDefault(&client)
+			isOK := h.handleDefault(&client)
+			if !isOK {
+				fmt.Println("Failed to handle default message")
+			}
 			break
 		}
 	} else {
