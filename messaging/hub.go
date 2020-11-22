@@ -195,7 +195,7 @@ func (h *Hub) handleRelay(client *Client, message *Message) {
 
 	if isOk {
 		var payload string
-		okSubs, okBody := ValidateRequest(subs, body)
+		okSubs, okBody, retMsg := ValidateRequest(subs, body)
 
 		if okSubs && okBody {
 			if len(subs) > 0 {
@@ -213,6 +213,18 @@ func (h *Hub) handleRelay(client *Client, message *Message) {
 					h.publishToSender(msg, client)
 				}
 
+			}
+		} else if !okSubs {
+			msg, isOK := SerialiseString(retMsg)
+
+			if isOK {
+				h.publishToSender(msg, client)
+			}
+		} else if !okBody {
+			msg, isOK := SerialiseString(retMsg)
+
+			if isOK {
+				h.publishToSender(msg, client)
 			}
 		}
 	}
