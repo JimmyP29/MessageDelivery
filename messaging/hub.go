@@ -171,7 +171,7 @@ func (h *Hub) handleList(client *Client) {
 	if len(returnIDs) >= 1 {
 		payload = "(List) Other current userIDs: " + strings.Join(returnIDs, ", ")
 	} else {
-		payload = "(List) You are all alone!"
+		payload = "(List) It's dangerous to go alone! Take this. http://localhost:8888 "
 	}
 
 	msg, isOK := SerialiseString(payload)
