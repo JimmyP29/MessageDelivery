@@ -6,14 +6,14 @@ import (
 )
 
 type SerialiseStringResult struct {
-	s    string
-	b    []byte
-	isOK bool
+	s        string
+	b        []byte
+	expected bool
 }
 
 var serialiseStringResults = []SerialiseStringResult{
 	{"foobar", []byte{34, 102, 111, 111, 98, 97, 114, 34}, true},
-	//{"", nil, false},
+	{"", []byte{34, 34}, true},
 }
 
 func TestSerialiseString(t *testing.T) {
@@ -24,21 +24,21 @@ func TestSerialiseString(t *testing.T) {
 		if result != 0 {
 			t.Fatalf("Expected result: %v \n Actual result: %v\n", test.b, b)
 		}
-		if isOK != test.isOK {
-			t.Fatalf("Expected result: %v \n Actual result: %v\n", test.isOK, isOK)
+		if isOK != test.expected {
+			t.Fatalf("Expected result: %v \n Actual result: %v\n", test.expected, isOK)
 		}
 	}
 }
 
 type DeserialiseStringResult struct {
-	raw  []byte
-	s    string
-	isOK bool
+	raw      []byte
+	s        string
+	expected bool
 }
 
 var deserialiseStringResults = []DeserialiseStringResult{
 	{[]byte{34, 102, 111, 111, 98, 97, 114, 34}, "foobar", true},
-	//{nil, "", false},
+	{[]byte{34, 34}, "", true},
 }
 
 func TestDeserialiseString(t *testing.T) {
@@ -48,8 +48,8 @@ func TestDeserialiseString(t *testing.T) {
 		if s != test.s {
 			t.Fatalf("Expected result: %v \n Actual result: %v\n", test.s, &s)
 		}
-		if isOK != test.isOK {
-			t.Fatalf("Expected result: %v \n Actual result: %v\n", test.isOK, isOK)
+		if isOK != test.expected {
+			t.Fatalf("Expected result: %v \n Actual result: %v\n", test.expected, isOK)
 		}
 	}
 }
