@@ -55,8 +55,8 @@ var newHubResults = []NewHubResult{
 // }
 
 type GetRequestedSubscriptionsResult struct {
-	ids  []uint64
-	subs []Subscription
+	ids      []uint64
+	expected []Subscription
 }
 
 var getRequestedSubscriptionsResults = []GetRequestedSubscriptionsResult{
@@ -67,8 +67,8 @@ func TestGetRequestedSubscriptions(t *testing.T) {
 	for _, test := range getRequestedSubscriptionsResults {
 		subs := hub.getRequestedSubscriptions(test.ids)
 
-		if subs[0].client.userID != test.subs[0].client.userID {
-			t.Fatalf("Expected result: %v \n Actual result: %v\n", test.subs[0].client.userID, subs[0].client.userID)
+		if subs[0].client.userID != test.expected[0].client.userID {
+			t.Fatalf("Expected result: %v \n Actual result: %v\n", test.expected[0].client.userID, subs[0].client.userID)
 		}
 	}
 }
