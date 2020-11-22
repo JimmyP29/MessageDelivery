@@ -32,10 +32,8 @@ var sub2 = Subscription{
 	client: &client2,
 }
 
-var cs = make([]Client, 0)
-var ss = make([]Subscription, 0)
-var clients []Client = append(cs, client1, client2)
-var subs []Subscription = append(ss, sub1, sub2)
+var clients []Client = []Client{client1, client2}
+var subs []Subscription = []Subscription{sub1, sub2}
 
 var hub = Hub{
 	clients:       clients,
@@ -49,14 +47,21 @@ type NewHubResult struct {
 }
 
 var newHubResults = []NewHubResult{
-	{hub.clients, hub.subscriptions, &hub},
+	{clients, subs, &hub},
 }
 
+/*
+I don't understand why this is failing.
+
+=== RUN   TestNewHub
+    hub_test.go:59: Expected result: &{[{123 0xec7320} {456 0xec7320}] [{test 0xeb9660} {test 0xeb9670}]}
+         Actual result: &{[{123 0xec7320} {456 0xec7320}] [{test 0xeb9660} {test 0xeb9670}]}
+*/
 // func TestNewHub(t *testing.T) {
 // 	for _, test := range newHubResults {
-// 		hub := NewHub(test.clients, test.subscriptions)
-// 		if hub != test.expected {
-// 			t.Fatalf("Expected result: %v \n Actual result: %v\n", test.expected, hub)
+// 		h := NewHub(test.clients, test.subscriptions)
+// 		if h != test.expected {
+// 			t.Fatalf("Expected result: %v \n Actual result: %v\n", test.expected, h)
 // 		}
 // 	}
 // }
@@ -118,6 +123,9 @@ func TestGetRequestedSubscriptions(t *testing.T) {
 	}
 }
 
+var foobar string = "foobar"
+var b = SliceFromString(foobar)
+
 type PublishToSenderResult struct {
 	message  []byte
 	client   *Client
@@ -125,9 +133,15 @@ type PublishToSenderResult struct {
 }
 
 var publishToSenderResults = []PublishToSenderResult{
-	{[]byte{34, 102, 111, 111, 98, 97, 114, 34}, &hub.clients[0], true},
+	{[]byte{34, 102, 111, 111, 98, 97, 114, 34}, &client1, true},
 }
 
+/*
+--- FAIL: TestPublishToSender (0.00s)
+panic: runtime error: invalid memory address or nil pointer dereference [recovered]
+        panic: runtime error: invalid memory address or nil pointer dereference
+[signal 0xc0000005 code=0x0 addr=0x18 pc=0xd71656]
+*/
 // func TestPublishToSender(t *testing.T) {
 // 	for _, test := range publishToSenderResults {
 // 		isOK := hub.publishToSender(test.message, test.client)
@@ -148,6 +162,12 @@ var publishToReceiverResults = []PublishToReceiversResult{
 	{[]byte{34, 102, 111, 111, 98, 97, 114, 34}, subs, true},
 }
 
+/*
+--- FAIL: TestPublishToReceivers (0.00s)
+panic: runtime error: invalid memory address or nil pointer dereference [recovered]
+        panic: runtime error: invalid memory address or nil pointer dereference
+[signal 0xc0000005 code=0x0 addr=0x18 pc=0xee1656]
+*/
 // func TestPublishToReceivers(t *testing.T) {
 // 	for _, test := range publishToReceiverResults {
 // 		isOK := hub.publishToReceivers(test.message, test.subs)
@@ -167,6 +187,12 @@ var handleIdentityResults = []HandleIdentityResult{
 	{&hub.clients[0], true},
 }
 
+/*
+--- FAIL: TestHandleIdentity (0.00s)
+panic: runtime error: invalid memory address or nil pointer dereference [recovered]
+        panic: runtime error: invalid memory address or nil pointer dereference
+[signal 0xc0000005 code=0x0 addr=0x18 pc=0x551656]
+*/
 // func TestHandleIdentity(t *testing.T) {
 // 	for _, test := range handleIdentityResults {
 // 		isOK := hub.handleIdentity(test.client)
@@ -186,6 +212,12 @@ var handleListResults = []HandleListResult{
 	{&hub.clients[0], true},
 }
 
+/*
+--- FAIL: TestHandleList (0.00s)
+panic: runtime error: invalid memory address or nil pointer dereference [recovered]
+        panic: runtime error: invalid memory address or nil pointer dereference
+[signal 0xc0000005 code=0x0 addr=0x18 pc=0x1061656]
+*/
 // func TestHandleList(t *testing.T) {
 // 	for _, test := range handleListResults {
 // 		isOK := hub.handleList(test.client)
@@ -212,9 +244,15 @@ var handleRelayResults = []HandleRelayResult{
 	{&hub.clients[0], &message, true},
 }
 
+/*
+--- FAIL: TestHandleRelay (0.00s)
+panic: runtime error: invalid memory address or nil pointer dereference [recovered]
+        panic: runtime error: invalid memory address or nil pointer dereference
+[signal 0xc0000005 code=0x0 addr=0x18 pc=0x13c1656]
+*/
 // func TestHandleRelay(t *testing.T) {
 // 	for _, test := range handleRelayResults {
-// 		isOK := hub.handleRelay(*test.client, *test.message)
+// 		isOK := hub.handleRelay(test.client, test.message)
 
 // 		if isOK != test.expected {
 // 			t.Fatalf("Expected result: %v \n Actual result: %v\n", test.expected, isOK)
@@ -231,6 +269,13 @@ var handleDefaultResults = []HandleDefaultResult{
 	{&hub.clients[0], true},
 }
 
+/*
+Unrecognised message type, please use ints only: 0: Identity, 1: List, 2: Relay
+--- FAIL: TestHandleDefault (0.00s)
+panic: runtime error: invalid memory address or nil pointer dereference [recovered]
+        panic: runtime error: invalid memory address or nil pointer dereference
+[signal 0xc0000005 code=0x0 addr=0x18 pc=0x581656]
+*/
 // func TestHandleDefault(t *testing.T) {
 // 	for _, test := range handleDefaultResults {
 // 		isOK := hub.handleDefault(test.client)
@@ -240,8 +285,6 @@ var handleDefaultResults = []HandleDefaultResult{
 // 		}
 // 	}
 // }
-
-//var p = SerialiseMessage(&message)
 
 type HandleReceiveMessageResult struct {
 	client   *Client

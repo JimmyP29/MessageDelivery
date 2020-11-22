@@ -39,3 +39,14 @@ func CreateConnection() (c websocket.Conn) {
 
 	return
 }
+
+// SliceFromString - Used in tests to convert a string to a []byte
+func SliceFromString(s string) []byte {
+	msg, isOK := SerialiseString(s)
+
+	if !isOK {
+		log.Println("Didn't serialise the string")
+	}
+
+	return msg
+}
