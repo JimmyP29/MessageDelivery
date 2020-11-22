@@ -92,6 +92,8 @@ I still need to figure out the message body size problem. I am going to move ont
 
 ## Finished.
 
+I am proud of what I have achieved in a week. 2 weeks prior to this I had barely written any Go code, so this has been really rewarding for me. I said that vertically slicing the functionality would be difficult at the beginning of this README. I actually thought that once I had got the skelton structure finished in the first task, the details were quite nice to implement on top. I wish I hadn't underestimated the body size validation and the the testing though. I have logged down the detail of these things below however, so that the reader can at least appreciate the thought process behind these decisions.
+
 __How does it work?__
 
 The `Hub` is created upon the project first running.
@@ -148,6 +150,18 @@ unsafe.Sizeof(x ArbitraryType) uintptr
 
 Using either one of these with my `[]byte` returned a value that didn't change when increaing the message body and trying again. I believe it returns an expected value based upon the slice type, not what the slice actually will hold in memory. I hope though despite this omission, the reader will be able to see my intent with the `validation.go` file. I would have probably needed to create a second, private method that would be consumed within `ValidateRequest()`, then based on the return, the validation would behave accordingly.
 
+## Testing
+
+I have tried my best to implement the tests. I have done so successfully but there are some that have thrown me. They can be found in `hub_test.go` and have been left commented out to maintain a clean sweep for the tests that pass. 
+
+- `TestNewHub` (line 60): This test seems to be adamant that the actual and expected values are different, even though the printed output reveals them to be identical.
+- The other commented out tests seem to be complaining about the same thing, (taking `TestPublishToSender` (line 145) as an example):
+  ![Image of comment copy of test output failure](/README_assets/test_output_failure.PNG "Comment copy of test output failure")
+
+I think that they are both related in that they have something to do with reference vs value. I think the second point is because of the hub objects `[]Client` and `[]Subscription`. Somehow there's a derefence issue somewhere.
+
+It has made me learn more about pointers though. I will continue to research these issues and see if I can fix them. I also need to allow myself more time for testing, especially using a framework I am not familiar with.
+
 ## Resources
 Again, having not used Go much at all in the past, this was a learning experience as much as anything else. In order to do this I needed to find resources to help me achieve what I ended up with. As such I'd like to credit those sources here.
 - The [Go docs](https://golang.org/doc/)
@@ -157,3 +171,4 @@ Again, having not used Go much at all in the past, this was a learning experienc
 - This [article](https://www.ribice.ba/golang-enums/) about using variables in a way similar to enums in other languages.
 - This [YouTube video](https://www.youtube.com/watch?v=yyREnTgRTQ0&t=899s) which demonstrated using a websocket to create a local pubsub implementation. This helped me __a lot__ with the initial setup for the project.
 - This [Youtube video](https://www.youtube.com/watch?v=sOeUf1YICSA&list=PLShDm2AZYnK2BEw4ltBF67U3qBamg1ts3) and this [Youtube video](https://www.youtube.com/watch?v=S1O0XI0scOM) with regards to unit testing.
+- This [article](https://medium.com/what-i-talk-about-when-i-talk-about-technology/go-code-examples-httptest-newserver-f965fb349884) for creating mocks of websocket connections.
